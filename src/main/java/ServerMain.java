@@ -20,8 +20,8 @@ public class ServerMain {
             (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
 
     public static void main(String[] args) throws IOException {
-        double avgCpuUsage = operatingSystemMXBean.getProcessCpuLoad();
-        long avgRamUsage = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        double avgCpuUsage = 0;
+        long avgRamUsage = 0;
         long ramUsage = 0;
         double cpuUsage;
         int port = 9874;
@@ -35,9 +35,9 @@ public class ServerMain {
             byte[] bytesReceived = new byte[CHUNK_SIZE];
             for(int i = 0; i < noOfPackages; i++) {
                 cpuUsage = operatingSystemMXBean.getProcessCpuLoad();
-                avgCpuUsage = (avgCpuUsage + cpuUsage) / 2;
+                avgCpuUsage += cpuUsage;
                 ramUsage = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-                avgRamUsage = (avgRamUsage + ramUsage) / 2;
+                avgRamUsage += ramUsage;
                 int bytesToUseThisChunk = i == noOfPackages - 1 ? fileSize % CHUNK_SIZE : CHUNK_SIZE;
                 in.read(bytesReceived, 0, bytesToUseThisChunk);
                 out.write(bytesReceived, 0, bytesToUseThisChunk);
@@ -47,8 +47,8 @@ public class ServerMain {
             clientSocket.close();
 
             logger.info("-----------------------------------------");
-            logger.info("UPLOAD FILE: This iteration used as avg of " + avgCpuUsage * 100 +  "% of CPU");
-            logger.info("UPLOAD FILE: This iteration used an avg of RAM usage of " + ramUsage);
+            logger.info("UPLOAD FILE: This iteration used as avg of " + avgCpuUsage/noOfPackages * 100 +  "% of CPU");
+            logger.info("UPLOAD FILE: This iteration used an avg of RAM usage of " + avgRamUsage/noOfPackages);
             logger.info("-----------------------------------------");
         }
     }
